@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
-	"github.com/redis/go-redis/v9"
 	"regexp"
+
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -95,35 +96,4 @@ func NewRedisError(err error) *Error {
 	}
 	msg, pos := CallerMsg(err.Error(), 1)
 	return New(CodeInternalError, pos+" redis: "+msg)
-}
-
-// NewFileError 处理文件错误
-// @TODO
-func NewFileError(err error) *Error {
-	if err == nil {
-		return nil
-	}
-	m, pos := CallerMsg(err.Error(), 1)
-	return New(CodeInternalError, pos+" file error: "+m)
-}
-
-// NewHttpError 处理HTTP请求错误
-// @TODO
-func NewHttpError(err error) *Error {
-	if err == nil {
-		return nil
-	}
-	msg, pos := CallerMsg(err.Error(), 1)
-	return New(CodeInternalError, pos+" http: "+msg)
-
-}
-
-// NewJSONError 处理JSON错误
-// @TODO
-func NewJSONError(err error) *Error {
-	if err == nil {
-		return nil
-	}
-	msg, pos := CallerMsg(err.Error(), 1)
-	return New(CodeInternalError, pos+" json marshal/unmarshal error: "+msg)
 }

@@ -7,10 +7,10 @@ import (
 
 // Error 定义标准错误结构
 type Error struct {
-	Code    int            `json:"code"`
-	Msg     string         `json:"msg"`
-	Caller  string         `json:"caller,omitempty"`
-	Details map[string]any `json:"details,omitempty"`
+	Code    int    `json:"code"`
+	Msg     string `json:"msg"`
+	Caller  string `json:"caller"`
+	Details string `json:"details"`
 }
 
 // New 使用错误码和消息创建 Error
@@ -27,7 +27,7 @@ func NewCode(code int) *Error {
 	return &Error{
 		Code:   code,
 		Msg:    http.StatusText(code),
-		Caller: Caller(1),
+		Caller: Caller(2),
 	}
 }
 
@@ -36,7 +36,7 @@ func NewMsg(format string, args ...any) *Error {
 	return &Error{
 		Code:   500,
 		Msg:    fmt.Sprintf(format, args...),
-		Caller: Caller(1),
+		Caller: Caller(2),
 	}
 }
 
@@ -58,14 +58,11 @@ func (e *Error) WithCaller(skip int) *Error {
 }
 
 // WithDetail 添加详细信息
-func (e *Error) WithDetail(key string, value any) *Error {
+func (e *Error) WithDetail(format string, args ...any) *Error {
 	if e == nil {
 		return nil
 	}
-	if e.Details == nil {
-		e.Details = make(map[string]any)
-	}
-	e.Details[key] = value
+	e.Details = fmt.Sprintf(format, args...)
 	return e
 }
 

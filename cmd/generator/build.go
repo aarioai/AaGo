@@ -79,8 +79,12 @@ func appendMimes(mimes []string, mime ...string) []string {
 	}
 	return mimes
 }
+
+const jsonFile = "../../internal/app/aenum/filetype.jsonp"
+const dstFile = "../internal/app/aenum/filetype_readonly.go"
+const aaJsFile = "../../../../project/xixi/deploy/asset_src/lib_dev/aa-js/src/f_oss_filetype_readonly.js"
+
 func main() {
-	const jsonFile = "../aenum/filetype.jsonp"
 
 	b, err := readJsonFile(jsonFile)
 	if err != nil {
@@ -139,7 +143,6 @@ func main() {
 }
 
 func buildFileTypeGo(enums [][2]any, types map[string]map[string][]string) {
-	const dstFile = "../aenum/filetype_readonly.go"
 	f, err := os.OpenFile(dstFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		panic(err)
@@ -203,7 +206,6 @@ func buildFileTypeGo(enums [][2]any, types map[string]map[string][]string) {
 }
 func buildFileTypeJS(enums [][2]any, types map[string]map[string][]string, mimes []string) {
 	var dstFile = "./f_oss_filetype_readonly.js"
-	const aaJsFile = "../../../../project/xixi/deploy/asset_src/lib_dev/aa-js/src/f_oss_filetype_readonly.js"
 	fi, err := os.Stat(path.Dir(aaJsFile))
 	if err == nil && fi.IsDir() {
 		dstFile = aaJsFile

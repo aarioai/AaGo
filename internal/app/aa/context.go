@@ -1,0 +1,66 @@
+package log
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/kataras/iris/v12"
+)
+
+const (
+	CtxParamTraceKey    = "Trace"
+	IctxParamTraceId    = "TraceId"    // nginx 层传递的 trace id
+	IctxParamRemoteAddr = "RemoteAddr" // 远程地址
+	IctxParamVuser      = "TraceVuser" // 用户标识
+)
+
+func SetIctxTraceInfoVuser(ictx iris.Context, vuser string) {
+	if ictx == nil || vuser == "" {
+		return
+	}
+	ictx.Values().Set(IctxParamVuser, vuser)
+}
+
+// Context 这里会整体clone一个context，性能并不好。但是为了代码美化，还是牺牲这点性能，换取统一的trace id传递
+func Context(ictx iris.Context) context.Context {
+	traceId := TraceId(ictx)
+	ip := ictx.RemoteAddr()
+	vuser := ictx.Values().GetString(IctxParamVuser)
+	var trace string
+	if vuser == "" {
+		trace = fmt.Sprintf("%s %s", traceId, ip)
+	} else {
+		trace = fmt.Sprintf("%s %s %s", traceId, ip, vuser)
+	}
+	return context.WithValue(ictx.Request().Context(), CtxParamTraceKey, trace)
+}
+func TraceInfo(ctx context.Context) string {
+	trace, _ := ctx.Value(CtxParamTraceKey).(string)
+	return trace
+}
+
+// 一般用于任务，因此没有客户端，无法获取到IP、TraceId等
+func ContextWithTraceID(ctx context.Context, traceId string) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, CtxParamTraceKey, traceId)
+}
+
+// 使用 context.WithValue 会复制整个 context，会比较慢。尽量直接用 ictx.Values()
+//func SprintfTrace(ctx context.Context, msg string, args ...any) string {
+//	msg = fmt.Sprintf(msg, args...)
+//	return msg + " " + Sid(ctx)
+//}
+
+func TraceId(ictx iris.Context) string {
+	traceId := ictx.Values().GetString(IctxParamTraceId)
+	if traceId != "" {
+		return traceId
+	}
+	traceId = ictx.GetHeader("X-TraceId")
+	if traceId != "" {
+		ictx.Values().Set(IctxParamTraceId, traceId)
+	}
+	return traceId
+}
